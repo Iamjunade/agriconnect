@@ -1,0 +1,9 @@
+/* Reset default vite styling to allow Tailwind full control */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
