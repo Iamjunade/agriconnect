@@ -1,4 +1,6 @@
-const API_BASE = 'http://127.0.0.1:8000/api';
+// /api is proxied to FastAPI in local dev (vite.config.js proxy).
+// On Vercel production, /api/* routes directly to the Python serverless function.
+const API_BASE = '/api';
 
 export async function fetchStats() {
   const res = await fetch(`${API_BASE}/stats`);
