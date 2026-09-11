@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Truck, CheckCircle, Clock, AlertTriangle, ShieldCheck, 
-  ArrowRight, FileText, ChevronRight, DollarSign, MessageSquare, AlertCircle
+  ArrowRight, FileText, ChevronRight, DollarSign, MessageSquare, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import { fetchTransactions, updateTransactionStatus, fetchGrievances, createGrievance } from '../api';
 
 const STAGES = [
-  { key: 'offer_sent', label: 'Offer Sent' },
-  { key: 'offer_accepted', label: 'Offer Accepted' },
-  { key: 'pickup_scheduled', label: 'Pickup Scheduled' },
-  { key: 'in_transit', label: 'In Transit' },
-  { key: 'payment_initiated', label: 'Payment Initiated' },
-  { key: 'settled', label: 'Settled' }
+  { key: 'offer_sent', label: 'Contract Issued' },
+  { key: 'offer_accepted', label: 'Farmer Accepted' },
+  { key: 'pickup_scheduled', label: 'Logistics Scheduled' },
+  { key: 'in_transit', label: 'Produce In Transit' },
+  { key: 'payment_initiated', label: 'Escrow Initiated' },
+  { key: 'settled', label: 'Disbursed & Settled' }
 ];
 
 export default function TransactionTracker({ refreshTrigger, onStatusChanged }) {
@@ -75,7 +75,7 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
         issue_type: disputeForm.issue_type,
         details: disputeForm.details
       });
-      alert(`Grievance logged for Transaction #${selectedTx.id}. Status changed to Disputed.`);
+      alert(`Grievance formally lodged for Contract #${selectedTx.id}. Flagged for APMC review.`);
       setShowDisputeModal(false);
       loadData();
       if (onStatusChanged) onStatusChanged();
@@ -89,32 +89,34 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-xl border border-slate-700">
-        <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-800 relative overflow-hidden">
+        <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
           <ShieldCheck className="w-4 h-4" />
-          End-to-End Execution & Transparency
+          Execution Security & Trust Architecture
         </div>
-        <h2 className="text-2xl font-bold mt-1">Transaction Lifecycle & Grievance Resolution Desk</h2>
-        <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-          Track verified farm-gate transactions from initial digital offer through pickup coordination, escrow payment tracking, and formal dispute handling.
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5">
+          Contract Lifecycle & Grievance Redressal
+        </h2>
+        <p className="text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed font-normal">
+          Immutable audit trail for farm-gate agricultural transactions. Monitor contract milestones from digital issuance to pickup coordination, escrow payment settlement, and formal dispute mediation.
         </p>
       </div>
 
       {/* Transaction Pipeline Cards */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+          <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
             <Truck className="w-5 h-5 text-indigo-600" />
-            Active Transaction Pipeline
+            Active Contracts Pipeline
           </h3>
-          <span className="text-xs text-slate-500 bg-slate-200 px-2.5 py-1 rounded-full font-semibold">
+          <span className="text-xs text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full font-bold">
             {transactions.length} Total Contracts
           </span>
         </div>
 
         {transactions.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center text-slate-500 border border-slate-200">
-            No transactions found. Send an offer from the Buyer Portal or WhatsApp simulator.
+          <div className="bg-white rounded-3xl p-10 text-center text-slate-500 border border-slate-200 shadow-xs">
+            No active contracts yet. Issue a direct offer from the Marketplace or Buyer Desk.
           </div>
         ) : (
           transactions.map((tx) => {
@@ -124,46 +126,46 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
             return (
               <div 
                 key={tx.id}
-                className={`bg-white rounded-2xl p-5 border transition shadow-sm ${
-                  isDisputed ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
+                className={`bg-white rounded-3xl p-5 sm:p-6 border transition shadow-xs ${
+                  isDisputed ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200/90'
                 }`}
               >
                 {/* Transaction Card Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-slate-900 text-white text-xs font-mono font-bold px-2 py-0.5 rounded">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="bg-slate-950 text-white text-xs font-mono font-bold px-2.5 py-0.5 rounded-md">
                         TX-#{tx.id}
                       </span>
-                      <h4 className="font-bold text-slate-900 text-sm">
+                      <h4 className="font-extrabold text-slate-900 text-base">
                         {tx.quantity_quintals} Qtl {tx.crop}
                       </h4>
                       {isDisputed ? (
-                        <span className="bg-rose-100 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Disputed / On Hold
+                        <span className="bg-rose-100 text-rose-800 text-xs px-3 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Disputed / Escrow Held
                         </span>
                       ) : (
-                        <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold capitalize">
+                        <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-0.5 rounded-full font-bold capitalize">
                           {tx.status.replace('_', ' ')}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Farmer: <strong className="text-slate-800">{tx.farmer_name}</strong> • Buyer: <strong className="text-slate-800">{tx.buyer_name}</strong>
+                    <p className="text-xs text-slate-500 mt-1.5 font-medium">
+                      Farmer: <strong className="text-slate-900 font-bold">{tx.farmer_name}</strong> • Buyer: <strong className="text-slate-900 font-bold">{tx.buyer_name}</strong>
                     </p>
                   </div>
 
                   <div className="text-left sm:text-right">
-                    <div className="text-xs text-slate-500">Contract Total</div>
-                    <div className="text-lg font-black text-slate-900">
+                    <div className="text-xs text-slate-500 font-medium">Contract Value</div>
+                    <div className="text-xl sm:text-2xl font-black text-slate-900">
                       ₹{tx.total_amount.toLocaleString()} 
-                      <span className="text-xs font-normal text-slate-500"> (@₹{tx.offered_price}/qtl)</span>
+                      <span className="text-xs font-semibold text-slate-500"> (@₹{tx.offered_price}/qtl)</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stepper Progress Bar */}
-                <div className="py-4">
+                <div className="py-4 sm:py-5">
                   <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                     {STAGES.map((stg, i) => {
                       const isCompleted = currentStageIdx >= i && !isDisputed;
@@ -172,18 +174,18 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
                       return (
                         <div 
                           key={stg.key}
-                          className={`rounded-xl p-2 text-center text-xs font-medium border transition ${
+                          className={`rounded-2xl p-2.5 text-center text-xs font-medium border transition ${
                             isCompleted
-                              ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                              ? 'bg-emerald-50 text-emerald-950 border-emerald-300 font-semibold'
                               : isCurrent
-                              ? 'bg-indigo-50 text-indigo-900 border-indigo-500 font-bold ring-2 ring-indigo-200'
+                              ? 'bg-indigo-50 text-indigo-950 border-indigo-500 font-extrabold ring-2 ring-indigo-200/70'
                               : isDisputed && i === currentStageIdx
-                              ? 'bg-rose-100 text-rose-900 border-rose-400 font-bold'
-                              : 'bg-slate-50 text-slate-400 border-slate-200'
+                              ? 'bg-rose-100 text-rose-950 border-rose-400 font-bold'
+                              : 'bg-slate-50 text-slate-400 border-slate-200/80'
                           }`}
                         >
-                          <div className="text-[10px] font-mono text-slate-500">Step {i + 1}</div>
-                          <div className="text-xs mt-0.5 truncate">{stg.label}</div>
+                          <div className="text-[10px] font-mono text-slate-500 font-semibold">Stage {i + 1}</div>
+                          <div className="text-xs mt-1 truncate">{stg.label}</div>
                         </div>
                       );
                     })}
@@ -191,16 +193,16 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
                 </div>
 
                 {/* Actions Bar */}
-                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-xs text-slate-500">
-                    Status: <strong className="text-slate-800 capitalize">{tx.status.replace('_', ' ')}</strong>
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-xs text-slate-500 font-medium">
+                    Current Milestone: <strong className="text-slate-900 capitalize font-bold">{tx.status.replace('_', ' ')}</strong>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {!isDisputed && currentStageIdx < STAGES.length - 1 && (
                       <button
                         onClick={() => handleAdvanceStatus(tx.id, tx.status)}
-                        className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1"
+                        className="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
                       >
                         Advance to {STAGES[currentStageIdx + 1]?.label} <ChevronRight className="w-3.5 h-3.5" />
                       </button>
@@ -209,10 +211,10 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
                     {!isDisputed && (
                       <button
                         onClick={() => handleOpenDispute(tx)}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition border border-rose-200 flex items-center gap-1"
+                        className="bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 font-bold px-3.5 py-2 rounded-xl text-xs transition border border-rose-200 flex items-center gap-1.5"
                       >
                         <AlertTriangle className="w-3.5 h-3.5" />
-                        Raise Grievance / Dispute
+                        Log Grievance / Dispute
                       </button>
                     )}
                   </div>
@@ -224,40 +226,40 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
       </div>
 
       {/* Grievance & Dispute Log */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-rose-600" />
-              Audited Dispute & Grievance Records
+              Audited Dispute Records & Redressal Desk
             </h3>
-            <p className="text-xs text-slate-500">
-              Directly fulfills SIH requirement for transparent dispute resolution between farmers and buyers
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Transparent dispute logging with standardized escalation to APMC mediation officers.
             </p>
           </div>
-          <span className="text-xs font-semibold bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full">
+          <span className="text-xs font-bold bg-rose-100 text-rose-800 px-3 py-1 rounded-full">
             {grievances.length} Logged
           </span>
         </div>
 
         {grievances.length === 0 ? (
-          <p className="text-xs text-slate-400 py-4 text-center">No active disputes logged.</p>
+          <p className="text-xs text-slate-400 py-6 text-center font-medium">No open grievances on record.</p>
         ) : (
           <div className="divide-y divide-slate-100">
             {grievances.map((gr) => (
-              <div key={gr.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div key={gr.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-md border border-rose-200 font-mono">
                       Case #{gr.id} • TX-#{gr.transaction_id}
                     </span>
-                    <strong className="text-xs text-slate-900">{gr.issue_type}</strong>
-                    <span className="text-[11px] text-slate-500">(Raised by {gr.raised_by})</span>
+                    <strong className="text-xs text-slate-900 font-bold">{gr.issue_type}</strong>
+                    <span className="text-[11px] text-slate-500 font-medium">(Raised by {gr.raised_by})</span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">{gr.details}</p>
+                  <p className="text-xs text-slate-600 mt-1 font-medium">{gr.details}</p>
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  <span className="text-[10px] font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-full uppercase tracking-wider">
                     {gr.status}
                   </span>
                 </div>
@@ -269,22 +271,22 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
 
       {/* Modal: Raise Grievance */}
       {showDisputeModal && selectedTx && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200">
-            <h3 className="text-lg font-bold text-rose-700 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" /> Raise Grievance on TX-#{selectedTx.id}
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100">
+            <h3 className="text-lg font-extrabold text-rose-700 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" /> Log Formal Grievance • TX-#{selectedTx.id}
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 mt-1 font-medium">
               Produce: {selectedTx.quantity_quintals} Qtl {selectedTx.crop} • Farmer: {selectedTx.farmer_name}
             </p>
 
-            <form onSubmit={handleSubmitDispute} className="space-y-3 mt-4 text-xs">
+            <form onSubmit={handleSubmitDispute} className="space-y-3.5 mt-4 text-xs">
               <div>
-                <label className="font-semibold text-slate-700">Reporting Party</label>
+                <label className="font-bold text-slate-700">Reporting Party</label>
                 <select
                   value={disputeForm.raised_by}
                   onChange={(e) => setDisputeForm({ ...disputeForm, raised_by: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 text-xs font-semibold focus:ring-2 focus:ring-rose-500/50"
                 >
                   <option value="Buyer">Buyer</option>
                   <option value="Farmer">Farmer</option>
@@ -292,11 +294,11 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700">Issue Category</label>
+                <label className="font-bold text-slate-700">Issue Category</label>
                 <select
                   value={disputeForm.issue_type}
                   onChange={(e) => setDisputeForm({ ...disputeForm, issue_type: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 text-xs font-semibold focus:ring-2 focus:ring-rose-500/50"
                 >
                   <option value="Quality Mismatch at Farm Gate">Quality Mismatch at Farm Gate</option>
                   <option value="Logistics / Truck Pickup Delay">Logistics / Truck Pickup Delay</option>
@@ -306,30 +308,30 @@ export default function TransactionTracker({ refreshTrigger, onStatusChanged }) 
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700">Specific Observations / Details</label>
+                <label className="font-bold text-slate-700">Observations / Incident Details</label>
                 <textarea
                   rows={3}
                   required
                   value={disputeForm.details}
                   onChange={(e) => setDisputeForm({ ...disputeForm, details: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2 mt-1 focus:ring-1 focus:ring-rose-500"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-rose-500/50 text-xs font-medium focus:outline-none"
                 ></textarea>
               </div>
 
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowDisputeModal(false)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-xl"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl shadow"
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold py-2.5 rounded-xl shadow-xs text-xs"
                 >
-                  Confirm & Flag
+                  Submit & Hold Escrow
                 </button>
               </div>
             </form>

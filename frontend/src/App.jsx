@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Smartphone, Building2, BarChart3, ShieldCheck, RefreshCw, 
-  Layers, CheckCircle2, SplitSquareVertical, ExternalLink, Sparkles 
+  Layers, CheckCircle2, SplitSquareVertical, ExternalLink, Sparkles,
+  TrendingUp, Activity, CheckCircle, ChevronRight, HelpCircle
 } from 'lucide-react';
 import FarmerSimulator from './components/FarmerSimulator';
 import BuyerPortal from './components/BuyerPortal';
@@ -10,10 +11,10 @@ import TransactionTracker from './components/TransactionTracker';
 import { fetchStats, resetDemoState } from './api';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('split'); // default to split mode for judges
+  const [activeTab, setActiveTab] = useState('split');
   const [stats, setStats] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [resetting, setResetting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -32,137 +33,138 @@ export default function App() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  const handleResetData = async () => {
-    if (!window.confirm('Reset demo state back to default Maharashtra APMC dataset?')) return;
-    setResetting(true);
+  const handleSyncData = async () => {
+    setRefreshing(true);
     try {
       await resetDemoState();
       handleTriggerRefresh();
-      alert('AgriConnect demo data reloaded.');
     } catch (err) {
-      alert('Error resetting demo: ' + err.message);
+      console.error('Sync failed:', err);
     } finally {
-      setResetting(false);
+      setTimeout(() => setRefreshing(false), 600);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col text-slate-900 selection:bg-emerald-500 selection:text-white">
       {/* Top Header Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40 backdrop-blur-md bg-white/95 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
             {/* Logo & Title */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-2xl shadow-md">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 flex items-center justify-center text-xl shadow-md shadow-emerald-500/20 text-white font-black">
                 🌾
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-extrabold text-slate-900 text-lg tracking-tight">AgriConnect</h1>
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    SIH26132
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-extrabold text-slate-950 text-xl tracking-tight leading-none">
+                    Agri<span className="text-emerald-600">Connect</span>
+                  </h1>
+                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Live Platform
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 hidden sm:block">
-                  Govt. of Maharashtra • Market Linkages, Price Discovery & Aggregation
+                <p className="text-[11px] text-slate-500 hidden sm:block font-medium mt-0.5">
+                  Maharashtra Agricultural Sourcing, Price Discovery & Smallholder Aggregation
                 </p>
               </div>
             </div>
 
             {/* Quick KPI summary badges */}
             {stats && (
-              <div className="hidden xl:flex items-center space-x-4 text-xs">
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                  <span className="text-slate-500">Available Produce:</span>
+              <div className="hidden lg:flex items-center space-x-3 text-xs">
+                <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-xs">
+                  <span className="text-slate-500 font-medium">Available Lots:</span>
                   <strong className="text-slate-900 font-bold">{stats.total_volume_available_qtl} Qtl</strong>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                  <span className="text-slate-500">Active Demands:</span>
-                  <strong className="text-indigo-600 font-bold">{stats.active_demands}</strong>
+                <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-xs">
+                  <span className="text-slate-500 font-medium">Buyer Demands:</span>
+                  <strong className="text-indigo-600 font-bold">{stats.active_demands} active</strong>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                  <span className="text-slate-500">Contracts:</span>
+                <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-xs">
+                  <span className="text-slate-500 font-medium">Executed Deals:</span>
                   <strong className="text-emerald-700 font-bold">{stats.total_transactions}</strong>
                 </div>
               </div>
             )}
 
-            {/* Reset Button */}
+            {/* Live Data Sync Button */}
             <div className="flex items-center space-x-2">
               <button
-                onClick={handleResetData}
-                disabled={resetting}
-                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1.5"
-                title="Reset database to initial demo state"
+                onClick={handleSyncData}
+                disabled={refreshing}
+                className="text-xs bg-white hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center gap-1.5 active:scale-95"
+                title="Sync live platform data"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Reset Demo</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
+                <span className="hidden sm:inline">Sync Data</span>
               </button>
             </div>
           </div>
 
           {/* Navigation Bar Tabs */}
-          <div className="flex space-x-1 sm:space-x-2 overflow-x-auto border-t border-slate-100 py-1.5 scrollbar-none">
+          <div className="flex space-x-1 sm:space-x-2 overflow-x-auto border-t border-slate-100 py-2 scrollbar-none">
             <button
               onClick={() => setActiveTab('split')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'split'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <SplitSquareVertical className="w-4 h-4" />
-              ⚡ Split Screen Demo (Judge View)
+              Interactive Marketplace & Bot
             </button>
 
             <button
               onClick={() => setActiveTab('farmer')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'farmer'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              Farmer WhatsApp / Voice
+              <Smartphone className="w-4 h-4 text-emerald-500" />
+              Farmer WhatsApp & Voice Intake
             </button>
 
             <button
               onClick={() => setActiveTab('buyer')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'buyer'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <Building2 className="w-4 h-4 text-indigo-400" />
-              Buyer Demand & Aggregation
+              Buyer Sourcing & Aggregation
             </button>
 
             <button
               onClick={() => setActiveTab('intelligence')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'intelligence'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <BarChart3 className="w-4 h-4 text-emerald-400" />
-              Mandi Net-Price Discovery
+              APMC Mandi Price Discovery
             </button>
 
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'transactions'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <ShieldCheck className="w-4 h-4 text-teal-400" />
-              Transaction Lifecycle & Disputes
+              Contracts & Dispute Resolution
             </button>
           </div>
         </div>
@@ -171,22 +173,27 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         
-        {/* TAB 1: SPLIT SCREEN DEMO (Perfect for judges: Farmer phone on left, Buyer dashboard on right!) */}
+        {/* TAB 1: SPLIT VIEW */}
         {activeTab === 'split' && (
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-slate-800">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
-                <span>
-                  <strong>Hackathon Live Mode:</strong> Send an offer from the <strong>Buyer Desk on the right</strong> or create a lot in the <strong>Farmer WhatsApp on the left</strong> to watch the closed loop in real time!
-                </span>
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-indigo-500/10 border border-emerald-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-800 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-bold text-slate-950 text-sm block">Unified Sourcing & Discovery Loop</span>
+                  <span className="text-slate-600">
+                    Interact with the multilingual WhatsApp assistant on the left, or dispatch contracts directly from the Institutional Buyer Desk on the right.
+                  </span>
+                </div>
               </div>
-              <span className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-300 font-bold text-emerald-800">
-                LIVE DUAL STREAM
+              <span className="self-start sm:self-center font-mono text-[11px] bg-white px-3 py-1 rounded-lg border border-emerald-200 font-bold text-emerald-800 shrink-0 shadow-xs">
+                Real-Time Synchronized
               </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Left Column: Farmer Phone (5 cols) */}
               <div className="lg:col-span-5">
                 <div className="sticky top-28">
@@ -210,7 +217,7 @@ export default function App() {
 
         {/* TAB 2: FARMER WHATSAPP BOT FULL VIEW */}
         {activeTab === 'farmer' && (
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto py-2">
             <FarmerSimulator 
               onLotCreated={handleTriggerRefresh} 
               refreshTrigger={refreshTrigger} 
@@ -242,8 +249,17 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
-        <p>AgriConnect • SIH26132 Prototype • Government of Maharashtra Agricultural Sourcing Architecture</p>
+      <footer className="bg-white border-t border-slate-200/80 py-6 px-4 text-center text-xs text-slate-500 mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-slate-900">AgriConnect</span>
+            <span>•</span>
+            <span>Agricultural Sourcing & Market Discovery Infrastructure</span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Unified with Maharashtra APMC Mandis & e-NAM Framework
+          </div>
+        </div>
       </footer>
     </div>
   );

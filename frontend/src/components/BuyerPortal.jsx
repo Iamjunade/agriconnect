@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Building2, Users, Layers, TrendingUp, Plus, ArrowRight, 
-  MapPin, CheckCircle, Clock, ShieldCheck, Truck, Send, Sparkles, Filter
+  MapPin, CheckCircle, Clock, ShieldCheck, Truck, Send, Sparkles, Filter, CheckCircle2
 } from 'lucide-react';
 import { fetchLots, fetchDemands, createDemand, fetchDemandClusters, createOffer } from '../api';
 
@@ -106,7 +106,6 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
   const handleSendClusterOffer = async (cluster) => {
     setSubmittingOffer(true);
     try {
-      // Dispatches offer on the first lot or aggregated cluster
       for (const lot of cluster.lots) {
         await createOffer({
           buyer_name: selectedDemand.organization,
@@ -117,7 +116,7 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
           offered_price: selectedDemand.max_price
         });
       }
-      alert(`🎉 Aggregated Contract Dispatched! Direct offers sent to ${cluster.participating_farmers_count} smallholders simultaneously!`);
+      alert(`Aggregated purchase contracts dispatched to ${cluster.participating_farmers_count} smallholders simultaneously!`);
       loadData();
       if (onOfferCreated) onOfferCreated();
     } catch (err) {
@@ -135,24 +134,27 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
   return (
     <div className="space-y-6">
       {/* Top Banner: Institutional Sourcing Overview */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-800/80 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div>
-            <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
               <Building2 className="w-4 h-4" />
-              Institutional Sourcing & FPO Desk
+              Institutional Procurement & Smallholder Aggregation
             </div>
-            <h2 className="text-2xl font-bold mt-1">Smart Demand & Dynamic Aggregation Engine</h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Solve the smallholder fragmentation problem. Post institutional volume demands and automatically cluster neighboring smallholders into aggregated, contract-ready lots with shared logistics savings.
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5">
+              Direct Sourcing & Dynamic Pooling Engine
+            </h2>
+            <p className="text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed font-normal">
+              Eliminate supply chain friction. Publish bulk procurement requirements and automatically aggregate neighboring smallholders into contract-ready, quality-graded pools with pooled freight savings.
             </p>
           </div>
           <button
             onClick={() => setShowNewDemandModal(true)}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-lg shrink-0"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold px-5 py-3 rounded-2xl text-sm transition shadow-lg shadow-emerald-500/20 shrink-0"
           >
-            <Plus className="w-4 h-4" />
-            Post Sourcing Demand
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Post Sourcing Requirement
           </button>
         </div>
       </div>
@@ -160,14 +162,14 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
       {/* Grid: Demands & Dynamic Aggregation Matcher */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left: Active Demands List (4 cols) */}
+        {/* Left: Active Demands List (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-600" />
-              Active Buyer Demands
+              Published Institutional Requirements
             </h3>
-            <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full font-bold">
               {demands.length} Active
             </span>
           </div>
@@ -177,38 +179,38 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
               <div
                 key={d.id}
                 onClick={() => handleSelectDemand(d)}
-                className={`cursor-pointer rounded-xl p-4 transition border ${
+                className={`cursor-pointer rounded-2xl p-4 sm:p-5 transition border text-left ${
                   selectedDemand?.id === d.id
-                    ? 'bg-indigo-50/70 border-indigo-500 shadow-md ring-1 ring-indigo-500'
-                    : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+                    ? 'bg-indigo-50/70 border-indigo-500 shadow-md ring-1 ring-indigo-500/40'
+                    : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100/80 px-2.5 py-0.5 rounded-md">
                       {d.crop}
                     </span>
-                    <h4 className="font-bold text-slate-900 text-sm mt-1.5">{d.organization}</h4>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3" /> {d.delivery_location}
+                    <h4 className="font-bold text-slate-900 text-sm mt-2">{d.organization}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> {d.delivery_location}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-base font-extrabold text-slate-900">
-                      {d.min_quantity} <span className="text-xs font-medium text-slate-500">Qtl MOQ</span>
+                    <div className="text-lg font-black text-slate-900 leading-tight">
+                      {d.min_quantity} <span className="text-xs font-semibold text-slate-500">Qtl MOQ</span>
                     </div>
-                    <div className="text-xs text-emerald-700 font-semibold mt-0.5">
-                      Target: ₹{d.max_price}/qtl
+                    <div className="text-xs text-emerald-700 font-bold mt-1">
+                      Max: ₹{d.max_price}/qtl
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 pt-2.5 border-t border-slate-200/70 flex items-center justify-between text-xs text-slate-600">
-                  <span className="bg-slate-100 px-2 py-0.5 rounded font-mono text-[11px]">
-                    Quality: {d.target_grade}
+                <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-medium">
+                  <span className="bg-slate-100/80 px-2 py-0.5 rounded text-[11px] text-slate-700">
+                    Grade Spec: {d.target_grade}
                   </span>
-                  <span className="text-indigo-600 font-semibold flex items-center gap-1">
-                    Smart Cluster Match <ArrowRight className="w-3.5 h-3.5" />
+                  <span className="text-indigo-600 font-bold flex items-center gap-1">
+                    View Pooled Cluster <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>
@@ -219,72 +221,68 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
         {/* Right: Dynamic Aggregation Result Card (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              Dynamic Aggregation Engine: Clustering Smallholders
+              Dynamic Spatial Aggregation Pool
             </h3>
             {selectedDemand && (
-              <span className="text-xs text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full font-semibold">
+              <span className="text-xs text-indigo-800 bg-indigo-100/80 border border-indigo-200 px-3 py-1 rounded-full font-bold">
                 Target: {selectedDemand.min_quantity} Qtl {selectedDemand.crop}
               </span>
             )}
           </div>
 
           {loadingClusters ? (
-            <div className="bg-white rounded-xl p-12 text-center border border-slate-200 shadow-sm">
-              <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm font-medium text-slate-600">Running spatial clustering algorithm across regional lots...</p>
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs">
+              <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-xs font-semibold text-slate-600">Running spatial clustering across regional smallholders...</p>
             </div>
           ) : clusterData?.clusters && clusterData.clusters.length > 0 ? (
             <div className="space-y-4">
               {clusterData.clusters.map((cluster, idx) => (
                 <div 
                   key={idx}
-                  className="bg-gradient-to-br from-white to-indigo-50/40 border-2 border-indigo-300 rounded-2xl p-5 shadow-md relative overflow-hidden"
+                  className="bg-white border-2 border-indigo-200/90 rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-                    {cluster.pitch_tag}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-900 text-base">
-                          {cluster.region} Smallholder Cluster
+                      <div className="flex items-center gap-2.5">
+                        <h4 className="font-extrabold text-slate-900 text-base">
+                          {cluster.region} Aggregated Sourcing Pool
                         </h4>
-                        <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">
-                          MOQ Fulfilled ({cluster.total_pooled_quantity} / {cluster.target_quantity} Qtl)
+                        <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                          MOQ Met ({cluster.total_pooled_quantity} / {cluster.target_quantity} Qtl)
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                      <p className="text-xs text-slate-600 mt-1.5 flex items-center gap-1.5 font-medium">
                         <MapPin className="w-3.5 h-3.5 text-indigo-600" />
-                        Collection Depot: <strong>{cluster.suggested_hub}</strong>
+                        Collection Hub: <strong className="text-slate-900 font-bold">{cluster.suggested_hub}</strong>
                       </p>
                     </div>
 
-                    <div className="text-left sm:text-right bg-indigo-100/60 p-2.5 rounded-xl border border-indigo-200">
-                      <div className="text-xs text-indigo-900 font-medium">Collective Logistics Savings</div>
-                      <div className="text-lg font-black text-indigo-700">
+                    <div className="bg-indigo-50/80 border border-indigo-200/70 p-3 rounded-2xl text-left sm:text-right">
+                      <div className="text-[11px] text-indigo-900 font-semibold">Shared Freight Optimization</div>
+                      <div className="text-xl font-black text-indigo-700">
                         ₹{cluster.collective_freight_savings_inr.toLocaleString()}
                       </div>
                     </div>
                   </div>
 
                   {/* Clustered Farmers Breakdown */}
-                  <div className="mt-4 pt-3 border-t border-slate-200">
-                    <div className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                  <div className="mt-5 pt-4 border-t border-slate-100">
+                    <div className="text-xs font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-indigo-600" />
                       {cluster.participating_farmers_count} Smallholders Pooled in this Contract:
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                       {cluster.lots.map((lot) => (
-                        <div key={lot.id} className="bg-white rounded-lg p-2.5 border border-slate-200 shadow-sm text-xs">
+                        <div key={lot.id} className="bg-slate-50/90 rounded-xl p-3 border border-slate-200/80 text-xs">
                           <div className="font-bold text-slate-900">{lot.farmer_name}</div>
-                          <div className="text-slate-500 text-[11px]">{lot.village}</div>
-                          <div className="flex justify-between items-center mt-1.5 pt-1 border-t border-slate-100">
-                            <span className="font-extrabold text-emerald-700">{lot.quantity_quintals} Qtl</span>
-                            <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{lot.grade}</span>
+                          <div className="text-slate-500 text-[11px] font-medium">{lot.village}</div>
+                          <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-slate-200/60">
+                            <span className="font-black text-emerald-700">{lot.quantity_quintals} Qtl</span>
+                            <span className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-700">{lot.grade}</span>
                           </div>
                         </div>
                       ))}
@@ -292,28 +290,28 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
                   </div>
 
                   {/* Action: Dispatch Aggregated Bulk Offer */}
-                  <div className="mt-4 pt-3 flex items-center justify-between">
-                    <span className="text-xs text-slate-500">
-                      Dispatches standardized contract to all {cluster.participating_farmers_count} farmers on WhatsApp.
+                  <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span className="text-xs text-slate-500 font-medium">
+                      Direct contract dispatched to all {cluster.participating_farmers_count} farmers simultaneously.
                     </span>
                     <button
                       onClick={() => handleSendClusterOffer(cluster)}
                       disabled={submittingOffer}
-                      className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5"
+                      className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 disabled:opacity-50 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-2 shrink-0"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Send Cluster Offer (@₹{selectedDemand.max_price}/qtl)
+                      Issue Bulk Contract (@₹{selectedDemand.max_price}/qtl)
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-xl p-8 text-center border border-dashed border-slate-300 text-slate-500">
-              <Layers className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-slate-700">No active cluster matches this demand MOQ yet.</p>
+            <div className="bg-white rounded-3xl p-10 text-center border border-dashed border-slate-300 text-slate-500">
+              <Layers className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm font-bold text-slate-800">No active cluster matches this demand MOQ yet.</p>
               <p className="text-xs text-slate-500 mt-1">
-                Select another demand or wait for smallholder lots to register via WhatsApp.
+                Select another institutional demand or list lots in the WhatsApp assistant to observe automated spatial grouping.
               </p>
             </div>
           )}
@@ -321,22 +319,22 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
       </div>
 
       {/* Active Lots Marketplace Section */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="font-bold text-slate-900 text-lg">Active Lots Marketplace</h3>
-            <p className="text-xs text-slate-500">Individual farmer lots listed via WhatsApp and Voice intake</p>
+            <h3 className="font-extrabold text-slate-900 text-lg tracking-tight">Verified Farmer Lots Marketplace</h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Individual farmer harvest declarations registered via WhatsApp & Voice</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Filter className="w-3.5 h-3.5 text-slate-400 mr-1" />
             {['All', 'Onion', 'Soybean', 'Cotton', 'Tomato'].map((crop) => (
               <button
                 key={crop}
                 onClick={() => setFilterCrop(crop)}
-                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${
+                className={`text-xs px-3 py-1.5 rounded-xl font-bold transition ${
                   filterCrop === crop
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-slate-900 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -350,64 +348,64 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
           {filteredLots.map((lot) => (
             <div 
               key={lot.id} 
-              className={`rounded-xl p-4 border transition ${
+              className={`rounded-2xl p-4 sm:p-5 border transition ${
                 lot.status === 'under_offer'
                   ? 'bg-amber-50/50 border-amber-300'
                   : lot.status === 'sold'
                   ? 'bg-slate-100 border-slate-300 opacity-60'
-                  : 'bg-white border-slate-200 hover:shadow-md'
+                  : 'bg-white border-slate-200 hover:shadow-md hover:border-slate-300'
               }`}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">
                     Lot #{lot.id}
                   </span>
-                  <h4 className="font-bold text-slate-900 text-sm mt-1">{lot.farmer_name}</h4>
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                  <h4 className="font-bold text-slate-900 text-sm mt-1.5">{lot.farmer_name}</h4>
+                  <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
                     <MapPin className="w-3 h-3 text-slate-400" /> {lot.village}, {lot.district}
                   </p>
                 </div>
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                   lot.grade === 'Grade A' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
                 }`}>
                   {lot.grade}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 my-3 p-2 bg-slate-50 rounded-lg text-xs">
+              <div className="grid grid-cols-2 gap-2 my-3.5 p-3 bg-slate-50 rounded-xl text-xs">
                 <div>
-                  <span className="text-slate-500">Crop:</span>
-                  <div className="font-bold text-slate-800">{lot.crop}</div>
+                  <span className="text-slate-500 font-medium">Commodity:</span>
+                  <div className="font-bold text-slate-900">{lot.crop}</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">Quantity:</span>
-                  <div className="font-bold text-slate-800">{lot.quantity_quintals} Quintals</div>
+                  <span className="text-slate-500 font-medium">Volume:</span>
+                  <div className="font-bold text-slate-900">{lot.quantity_quintals} Quintals</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">Expected:</span>
+                  <span className="text-slate-500 font-medium">Farmer Asking:</span>
                   <div className="font-bold text-emerald-700">₹{lot.expected_price || 2800}/qtl</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">Status:</span>
-                  <div className="font-semibold capitalize text-slate-700">{lot.status.replace('_', ' ')}</div>
+                  <span className="text-slate-500 font-medium">Status:</span>
+                  <div className="font-bold capitalize text-slate-700">{lot.status.replace('_', ' ')}</div>
                 </div>
               </div>
 
               {lot.status === 'available' ? (
                 <button
                   onClick={() => handleOpenOfferModal(lot)}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow"
+                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
                   Make Direct Digital Offer
                 </button>
               ) : lot.status === 'under_offer' ? (
-                <div className="text-center py-1 text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg">
-                  ⏳ Offer Dispatched (Awaiting Farmer)
+                <div className="text-center py-2 text-xs font-bold text-amber-800 bg-amber-100/80 rounded-xl border border-amber-200">
+                  ⏳ Contract Sent • Awaiting Farmer
                 </div>
               ) : (
-                <div className="text-center py-1 text-xs font-semibold text-slate-500 bg-slate-200 rounded-lg">
+                <div className="text-center py-2 text-xs font-semibold text-slate-500 bg-slate-200/80 rounded-xl">
                   Contract Settled
                 </div>
               )}
@@ -418,55 +416,55 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
 
       {/* Modal: Make Direct Offer */}
       {offerModalLot && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900">Make Digital Offer to Farmer</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Farmer <strong>{offerModalLot.farmer_name}</strong> will receive your offer instantly on WhatsApp with one-tap accept/decline buttons.
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100">
+            <h3 className="text-lg font-extrabold text-slate-900">Issue Purchase Contract to Farmer</h3>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Farmer <strong>{offerModalLot.farmer_name}</strong> will receive your formal offer on WhatsApp with instant contract acceptance buttons.
             </p>
 
-            <div className="bg-slate-50 rounded-xl p-3.5 my-4 text-xs space-y-1">
+            <div className="bg-slate-50 rounded-2xl p-4 my-4 text-xs space-y-1.5 border border-slate-200/60">
               <div className="flex justify-between">
-                <span className="text-slate-500">Lot Crop:</span>
-                <span className="font-bold">{offerModalLot.crop} ({offerModalLot.grade})</span>
+                <span className="text-slate-500">Lot:</span>
+                <span className="font-bold text-slate-900">{offerModalLot.crop} ({offerModalLot.grade})</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Quantity:</span>
-                <span className="font-bold">{offerModalLot.quantity_quintals} Quintals</span>
+                <span className="font-bold text-slate-900">{offerModalLot.quantity_quintals} Quintals</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Farmer Asking Rate:</span>
+                <span className="text-slate-500">Asking Rate:</span>
                 <span className="font-bold text-emerald-700">₹{offerModalLot.expected_price}/qtl</span>
               </div>
             </div>
 
-            <div className="space-y-1 mb-4">
-              <label className="text-xs font-bold text-slate-700">Your Offered Price (₹ per Quintal)</label>
+            <div className="space-y-1.5 mb-5">
+              <label className="text-xs font-bold text-slate-800">Your Offered Price (₹ per Quintal)</label>
               <input
                 type="number"
                 value={offerPrice}
                 onChange={(e) => setOfferPrice(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
               />
-              <div className="text-[11px] text-slate-500 mt-1">
-                Total Deal Payout: <strong>₹{(parseFloat(offerPrice || 0) * offerModalLot.quantity_quintals).toLocaleString()}</strong>
+              <div className="text-[11px] text-slate-500 mt-1 font-medium">
+                Total Contract Settlement: <strong>₹{(parseFloat(offerPrice || 0) * offerModalLot.quantity_quintals).toLocaleString()}</strong>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setOfferModalLot(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-xl text-xs transition"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitOffer}
                 disabled={submittingOffer}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-2 rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
-                Dispatch to WhatsApp
+                Dispatch Offer
               </button>
             </div>
           </div>
@@ -475,44 +473,44 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
 
       {/* Modal: Post New Sourcing Demand */}
       {showNewDemandModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900">Post Sourcing Demand</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Create an institutional requirement for smallholders and FPOs.
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-100">
+            <h3 className="text-lg font-extrabold text-slate-900">Publish Sourcing Requirement</h3>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Broadcast an institutional procurement requirement for smallholders and FPOs.
             </p>
 
-            <form onSubmit={handleCreateDemandSubmit} className="space-y-3 mt-4 text-xs">
+            <form onSubmit={handleCreateDemandSubmit} className="space-y-3.5 mt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700">Buyer Name</label>
+                  <label className="font-bold text-slate-700">Procurement Officer</label>
                   <input
                     type="text"
                     required
                     value={demandForm.buyer_name}
                     onChange={(e) => setDemandForm({ ...demandForm, buyer_name: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg p-2 mt-1 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700">Organization</label>
+                  <label className="font-bold text-slate-700">Enterprise / Organization</label>
                   <input
                     type="text"
                     required
                     value={demandForm.organization}
                     onChange={(e) => setDemandForm({ ...demandForm, organization: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg p-2 mt-1 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs font-semibold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700">Crop</label>
+                  <label className="font-bold text-slate-700">Commodity</label>
                   <select
                     value={demandForm.crop}
                     onChange={(e) => setDemandForm({ ...demandForm, crop: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 text-xs font-semibold"
                   >
                     <option value="Onion">Onion</option>
                     <option value="Soybean">Soybean</option>
@@ -522,51 +520,51 @@ export default function BuyerPortal({ refreshTrigger, onOfferCreated }) {
                   </select>
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700">Min MOQ (Qtl)</label>
+                  <label className="font-bold text-slate-700">Target MOQ (Qtl)</label>
                   <input
                     type="number"
                     required
                     value={demandForm.min_quantity}
                     onChange={(e) => setDemandForm({ ...demandForm, min_quantity: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700">Max Price (₹/qtl)</label>
+                  <label className="font-bold text-slate-700">Max Budget (₹/qtl)</label>
                   <input
                     type="number"
                     required
                     value={demandForm.max_price}
                     onChange={(e) => setDemandForm({ ...demandForm, max_price: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 text-xs font-semibold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700">Delivery Hub / Location</label>
+                <label className="font-bold text-slate-700">Delivery Processing Hub</label>
                 <input
                   type="text"
                   required
                   value={demandForm.delivery_location}
                   onChange={(e) => setDemandForm({ ...demandForm, delivery_location: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2 mt-1"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-indigo-500/50 text-xs font-semibold"
                 />
               </div>
 
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowNewDemandModal(false)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-xl"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl shadow"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold py-2.5 rounded-xl shadow-xs"
                 >
-                  Publish Demand
+                  Publish Requirement
                 </button>
               </div>
             </form>
