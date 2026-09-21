@@ -38,6 +38,7 @@ class FarmerChatRequest(BaseModel):
     message: str
     phone: Optional[str] = "+91-98230-11223"
     name: Optional[str] = "Ramesh Patil"
+    language: Optional[str] = "mr" # "mr" (Marathi), "hi" (Hindi), "en" (English)
 
 class CreateLotRequest(BaseModel):
     farmer_name: str
@@ -131,7 +132,7 @@ def get_mandi_overview():
 
 @app.post("/api/farmer/chat")
 def handle_farmer_chat(req: FarmerChatRequest, db: Session = Depends(get_db)):
-    result = parse_farmer_message(req.message, req.phone, req.name)
+    result = parse_farmer_message(req.message, req.phone, req.name, req.language)
     
     # Check if there are active offers for this farmer
     active_offers = db.query(Transaction).filter(

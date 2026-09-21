@@ -34,6 +34,7 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
   const [showPhotoGrading, setShowPhotoGrading] = useState(false);
   const [analyzingPhoto, setAnalyzingPhoto] = useState(false);
   const [photoGradingResult, setPhotoGradingResult] = useState(null);
+  const [selectedLang, setSelectedLang] = useState('mr'); // 'mr' | 'hi' | 'en'
 
   const messagesEndRef = useRef(null);
 
@@ -51,7 +52,7 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
 
   const checkIncomingOffers = async () => {
     try {
-      const res = await sendFarmerChat('status_check', selectedFarmer.phone, selectedFarmer.name);
+      const res = await sendFarmerChat('status_check', selectedFarmer.phone, selectedFarmer.name, selectedLang);
       if (res.pending_offers && res.pending_offers.length > 0) {
         setPendingOffers(res.pending_offers);
       } else {
@@ -63,19 +64,29 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
   };
 
   // Web Speech API for Marathi / Hindi TTS Audio Playback
-  const speakText = (textToSpeak) => {
+  const speakText = (textToSpeak, lang = selectedLang) => {
     if (!('speechSynthesis' in window)) {
       alert('Speech synthesis not supported in this browser.');
       return;
     }
     window.speechSynthesis.cancel();
-    const cleanText = textToSpeak.replace(/[*#•_]/g, '').replace(/₹/g, 'Rupees ');
+    const cleanText = textToSpeak.replace(/[*#•_]/g, '').replace(/₹/g, 'रुपये ');
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 0.95;
     
     // Select Hindi/Marathi voice if available
     const voices = window.speechSynthesis.getVoices();
-    const regionalVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('mr') || v.lang.includes('en-IN'));
+    let regionalVoice = null;
+    if (lang === 'mr') {
+      regionalVoice = voices.find(v => v.lang === 'mr-IN' || v.lang.includes('mr')) 
+                   || voices.find(v => v.lang === 'hi-IN' || v.lang.includes('hi'))
+                   || voices.find(v => v.lang.includes('en-IN'));
+    } else if (lang === 'hi') {
+      regionalVoice = voices.find(v => v.lang === 'hi-IN' || v.lang.includes('hi'))
+                   || voices.find(v => v.lang.includes('en-IN'));
+    } else {
+      regionalVoice = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-US'));
+    }
     if (regionalVoice) {
       utterance.voice = regionalVoice;
     }
@@ -85,6 +96,25 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
     utterance.onerror = () => setIsSpeaking(false);
     
     window.speechSynthesis.speak(utterance);
+  };
+
+  const handleLanguageChange = (newLang) => {
+    setSelectedLang(newLang);
+    const langNames = { mr: 'मराठी', hi: 'हिंदी', en: 'English' };
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        sender: 'bot',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: newLang === 'mr' 
+          ? "🌐 भाषा बदलून 'मराठी' केली आहे. आता आपण मराठीत प्रश्न विचारू शकता किंवा खालील पर्याय निवडू शकता!"
+          : newLang === 'hi'
+          ? "🌐 भाषा बदल कर 'हिंदी' कर दी गई है। अब आप हिंदी में पूछ सकते हैं या नीचे दिए विकल्प चुन सकते हैं!"
+          : "🌐 Language switched to English. You can now chat or select queries in English!",
+        type: 'lang_switch'
+      }
+    ]);
   };
 
   const handleSendMessage = async (textToSend) => {
@@ -103,15 +133,21 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
     setLoading(true);
 
     try {
-      const res = await sendFarmerChat(text, selectedFarmer.phone, selectedFarmer.name);
+      const res = await sendFarmerChat(text, selectedFarmer.phone, selectedFarmer.name, selectedLang);
       
+      // If server auto-detected a language, sync selectedLang
+      if (res.language && res.language !== selectedLang) {
+        setSelectedLang(res.language);
+      }
+
       const botMsg = {
         id: Date.now() + 1,
         sender: 'bot',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         text: res.chat_response,
         advisory: res.advisory,
-        extracted: res.extracted_data
+        extracted: res.extracted_data,
+        language: res.language || selectedLang
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -128,7 +164,11 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
           id: Date.now() + 1,
           sender: 'bot',
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          text: 'Connection timeout. Please verify that the platform service is responsive.'
+          text: selectedLang === 'mr'
+            ? 'सर्व्हरशी संपर्क होऊ शकला नाही. कृपया प्लॅटफॉर्म सेवा सुरू असल्याची खात्री करा.'
+            : selectedLang === 'hi'
+            ? 'सर्वर से संपर्क नहीं हो सका। कृपया सुनिश्चित करें कि सेवा चालू है।'
+            : 'Connection timeout. Please verify that the platform service is responsive.'
         }
       ]);
     } finally {
@@ -316,6 +356,45 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
             </select>
           </div>
 
+          {/* Sub-banner: Multilingual Language Selector (मराठी | हिंदी | English) */}
+          <div className="bg-[#111b21] border-b border-slate-800/90 px-3 py-1.5 flex items-center justify-between text-xs">
+            <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+              🌐 भाषा / Language:
+            </span>
+            <div className="flex items-center space-x-1 bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
+              <button
+                onClick={() => handleLanguageChange('mr')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition ${
+                  selectedLang === 'mr'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                मराठी
+              </button>
+              <button
+                onClick={() => handleLanguageChange('hi')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition ${
+                  selectedLang === 'hi'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                हिंदी
+              </button>
+              <button
+                onClick={() => handleLanguageChange('en')}
+                className={`px-2 py-1 rounded-md text-[11px] font-bold transition ${
+                  selectedLang === 'en'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                English
+              </button>
+            </div>
+          </div>
+
           {/* Chat Messages Body with WhatsApp Dark Theme */}
           <div className="flex-1 overflow-y-auto p-3.5 space-y-3 bg-[#0b141a] bg-[radial-gradient(#1f2c34_1px,transparent_1px)] [background-size:16px_16px]">
             {messages.map((m) => (
@@ -336,11 +415,17 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
                   {m.sender === 'bot' && (
                     <div className="mt-2 pt-1.5 border-t border-slate-700/60 flex items-center justify-between">
                       <button
-                        onClick={() => speakText(m.text)}
+                        onClick={() => speakText(m.text, m.language || selectedLang)}
                         className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
-                        {isSpeaking ? 'Playing Voice...' : 'Listen in Voice (मराठी / हिंदी)'}
+                        {isSpeaking 
+                          ? 'Playing Voice...' 
+                          : (m.language === 'mr' || selectedLang === 'mr')
+                          ? 'ऐका (मराठी आवाज)' 
+                          : (m.language === 'hi' || selectedLang === 'hi')
+                          ? 'सुनें (हिंदी आवाज)'
+                          : 'Listen in Voice'}
                       </button>
                     </div>
                   )}
@@ -453,30 +538,88 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
 
           {/* Quick Query Suggestion Chips */}
           <div className="bg-[#182229] px-2.5 py-2 border-t border-slate-800 overflow-x-auto flex space-x-2 scrollbar-none">
-            <button
-              onClick={() => simulateVoiceInput("I have 25 quintals of onion in Niphad Nashik grade A")}
-              className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
-            >
-              🧅 25q Onion (Niphad)
-            </button>
-            <button
-              onClick={() => simulateVoiceInput("mere paas 40 quintal soybean hai Latur me kya rate milega")}
-              className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
-            >
-              🌱 40q Soybean (Latur)
-            </button>
-            <button
-              onClick={() => simulateVoiceInput("majhyakade 35 quintal kanda ahe Lasalgaon")}
-              className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
-            >
-              🇮🇳 मराठी: ३५ क्विंटल कांदा
-            </button>
-            <button
-              onClick={() => simulateVoiceInput("30 quintal tomato in Pimpalgaon Nashik sell or wait")}
-              className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
-            >
-              🍅 30q Tomato
-            </button>
+            {selectedLang === 'mr' ? (
+              <>
+                <button
+                  onClick={() => simulateVoiceInput("माझ्याकडे २५ क्विंटल कांदा आहे निफाडमध्ये")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-300 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🧅 २५ क्विंटल कांदा (निफाड)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("लातूरमध्ये ४० क्विंटल सोयाबीनला काय भाव मिळेल?")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🌱 ४० क्विंटल सोयाबीन (लातूर)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("३० क्विंटल टोमॅटो आता विकावा की थांबावा?")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🍅 ३० क्विंटल टोमॅटो (विका की थांबा)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("माझ्याकडे ३० क्विंटल कापूस आहे अकोला")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🚜 ३० क्विंटल कापूस (अकोला)
+                </button>
+              </>
+            ) : selectedLang === 'hi' ? (
+              <>
+                <button
+                  onClick={() => simulateVoiceInput("मेरे पास 25 क्विंटल प्याज है निफाड नासिक में क्या भाव मिलेगा")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-300 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🧅 25 क्विंटल प्याज (निफाड)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("लातूर में 40 क्विंटल सोयाबीन का क्या भाव मिलेगा?")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🌱 40 क्विंटल सोयाबीन (लातूर)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("30 क्विंटल टमाटर अभी बेचें या रोकें?")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🍅 30 क्विंटल टमाटर (बेचें या रोकें)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("मेरे पास 30 क्विंटल कपास है अकोला में")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🚜 30 क्विंटल कपास (अकोला)
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => simulateVoiceInput("I have 25 quintals of onion in Niphad Nashik grade A")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-300 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🧅 25q Onion (Niphad)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("40 quintal soybean in Latur what is best rate")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🌱 40q Soybean (Latur)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("30 quintal tomato in Pimpalgaon Nashik sell or wait")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🍅 30q Tomato (Sell or Hold)
+                </button>
+                <button
+                  onClick={() => simulateVoiceInput("30 quintal cotton in Akola")}
+                  className="text-[11px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 transition font-medium"
+                >
+                  🚜 30q Cotton (Akola)
+                </button>
+              </>
+            )}
           </div>
 
           {/* WhatsApp Message Input Bar */}
@@ -490,7 +633,14 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
             </button>
 
             <button
-              onClick={() => simulateVoiceInput("I have 20 quintals of Onion in Niphad Nashik")}
+              onClick={() => {
+                const sample = selectedLang === 'mr' 
+                  ? "माझ्याकडे २५ क्विंटल कांदा आहे निफाड नाशिक"
+                  : selectedLang === 'hi'
+                  ? "मेरे पास 25 क्विंटल प्याज है निफाड नासिक"
+                  : "I have 20 quintals of Onion in Niphad Nashik";
+                simulateVoiceInput(sample);
+              }}
               className={`p-2 rounded-full transition ${
                 isRecording 
                   ? 'bg-rose-500 text-white animate-pulse' 
@@ -503,7 +653,11 @@ export default function FarmerSimulator({ onLotCreated, refreshTrigger }) {
 
             <input
               type="text"
-              placeholder={isRecording ? "Listening to voice in Marathi/Hindi..." : "Type in Marathi, Hindi or English..."}
+              placeholder={
+                isRecording 
+                  ? (selectedLang === 'mr' ? "मराठीत आवाज ऐकत आहे..." : selectedLang === 'hi' ? "हिंदी में आवाज सुन रहे हैं..." : "Listening to voice in Marathi/Hindi...") 
+                  : (selectedLang === 'mr' ? "मराठीत विचारा किंवा बोला... (उदा. २५ क्विंटल कांदा)" : selectedLang === 'hi' ? "हिंदी में पूछें या बोलें... (उदा. 25 क्विंटल प्याज)" : "Type in Marathi, Hindi or English...")
+              }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}

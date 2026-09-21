@@ -18,11 +18,11 @@ export async function fetchMandiOverview() {
   return res.json();
 }
 
-export async function sendFarmerChat(message, phone = '+91-98230-11223', name = 'Ramesh Patil') {
+export async function sendFarmerChat(message, phone = '+91-98230-11223', name = 'Ramesh Patil', language = 'mr') {
   const res = await fetch(`${API_BASE}/farmer/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, phone, name })
+    body: JSON.stringify({ message, phone, name, language })
   });
   return res.json();
 }
